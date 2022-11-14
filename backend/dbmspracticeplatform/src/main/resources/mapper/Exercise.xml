@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.example.demo.mapper.ExerciseMapper">
+    <resultMap id="map_exercise" type="com.example.demo.entity.Exercise">
+        <id property="id" column="id"/>
+        <result property="name" column="e_name"/>
+        <result property="teacherId" column="t_id"/>
+        <result property="describe" column="describe"/>
+        <result property="isPublic" column="ispublic"/>
+        <association property="teacher" javaType="com.example.demo.entity.Teacher">
+            <result property="name" column="t_name"/>
+        </association>
+    </resultMap>
+    
+    <resultMap id="map_exercise_2" type="com.example.demo.entity.Exercise">
+        <id property="id" column="id"/>
+        <result property="name" column="e_name"/>
+        <result property="teacherId" column="t_id"/>
+        <result property="describe" column="describe"/>
+        <result property="isPublic" column="ispublic"/>
+        <result property="deleteflag" column="deleteflag"/>
+        <association property="teacher" javaType="com.example.demo.entity.Teacher">
+            <result property="name" column="t_name"/>
+        </association>
+    </resultMap>
+    
+    <select id="getALLExercise" parameterType="string" resultMap="map_exercise">
+        select Exercise.id,Exercise.name as e_name,Exercise.describe,Exercise.isPublic, Exercise.teacherId as t_id ,Teacher.name as t_name
+        from Exercise join Teacher on Exercise.teacherId=Teacher.id
+        where   Exercise.teacherId=#{id} OR Exercise.isPublic=true
+    </select>
+    
+    <select id="getExercises" resultMap="map_exercise_2">
+        select Exercise.id,Exercise.name as e_name,Exercise.describe,Exercise.isPublic, Exercise.deleteflag, Exercise.teacherId as t_id ,Teacher.name as t_name
+        from Exercise, Teacher 
+        where  Exercise.teacherId=Teacher.id
+    </select>
+    
+    <select id="getOtherTeacherUseCount" parameterType="int" resultType="int">
+        select count(*) from Exercise, ExerInClass, StuClass
+        where Exercise.id = ExerInClass.exerciseId and ExerInClass.stuClassId = StuClass.id
+              and Exercise.teacherId != StuClass.teacherId and Exercise.id = #{exerciseId}
+    </select>
+</mapper>
+

@@ -1,0 +1,17 @@
+drop procedure check_createfunc;
+drop procedure check_func_answer;
+drop procedure execute_user_SQL;
+drop table test_case;
+drop procedure check_revokeTable;
+drop procedure check_grantTable;
+drop procedure check_revokeUser;
+drop procedure check_grantUser;
+drop procedure check_createUser;
+drop procedure check_createIndex;
+drop procedure check_createView;
+drop procedure check_alterTable;
+drop procedure check_createTable;
+drop procedure check_other;
+drop procedure check_select;
+drop function replacefirst;
+drop table check_error;
