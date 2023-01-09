@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.demo.mapper.StuAnswerMapper">
+    <resultMap id="map1" type="com.example.demo.entity.Student">
+        <id property="id" column="id"/>
+    </resultMap>
+    <resultMap id="map2" type="com.example.demo.entity.StuAnswer">
+        <result property="exerciseId" column="exerciseId"></result>
+        <result property="sum" column="sum(score)"/>
+    </resultMap>
+    <resultMap id="map3" type="com.example.demo.entity.SQLResult">
+        <association property="question" javaType="com.example.demo.entity.Question">
+            <id property="id" column="id"></id>
+            <result property="orderId" column="orderid"/>
+            <result property="dbName" column="dbname"/>
+            <result property="questionClass" column="questionclass"/>
+            <result property="title" column="title"/>
+            <result property="answer" column="qanswer"/>
+            
+        </association>
+        <association property="stuAnswer" javaType="com.example.demo.entity.StuAnswer">
+            <result property="answer" column="sanswer"/>
+            <result property="isRight" column="isright"/>
+            <result property="idea" column="idea"/>
+            <result property="score" column="score"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="map4" type="com.example.demo.entity.Question">
+        <id property="id" column="id"></id>
+        <result property="orderId" column="orderId"/>
+        <result property="dbName" column=" dbName"/>
+        <result property="questionClass" column=" questionClass"/>
+        <result property="title" column=" title"/>
+    </resultMap>
+    <resultMap id="map5" type="com.example.demo.entity.StuAnswer">
+        <id property="name" column="name"></id>
+        <result property="score" column="sum(score)"/>
+
+    </resultMap>
+    <resultMap id="map6" type="com.example.demo.entity.StuAnswer">
+        <id property="name" column="name"></id>
+        <result property="answer" column="answer"/>
+        <result property="isRight" column="isRight"/>
+        <result property="idea" column="idea"/>
+        <result property="score" column="score"/>
+    </resultMap>
+
+    <resultMap id="map7" type="com.example.demo.entity.SQLResult">
+        <association property="question" javaType="com.example.demo.entity.Question">
+            <result property="dbName" column="dbName"></result>
+            <result property="title" column="title"></result>
+            <result property="questionClass" column="questionClass"></result>
+        </association>
+        <association property="questInExer" javaType="com.example.demo.entity.QuestInExer">
+            <result property="questionId" column="QuestInExer.questionId"></result>
+            <result property="exerciseId" column="QuestInExer.exerciseId"></result>
+        </association>
+        <association property="stuAnswer" javaType="com.example.demo.entity.StuAnswer">
+            <result property="avgscore" column="avg(score)"></result>
+        </association>
+    </resultMap>
+    <!-- starttime和endtime有可能为空，导致exerInClass也为空，进而导致Impl处报null异常，采取在exerInClass中增加exerciseId来进行避免 -->
+    <resultMap id="map8" type="com.example.demo.entity.SQLResult">
+        <result property="finish" column="isfinish"/>
+        <result property="scoreSum" column="stu_sum"/>
+        <result property="full" column="isfull"/>
+        <association property="exercise" javaType="com.example.demo.entity.Exercise">
+            <id property="id" column="id"/>
+            <result property="name" column="name"/>
+        </association>
+        <association property="exerInClass" javaType="com.example.demo.entity.ExerInClass">
+            <result property="exerciseId" column="id"></result>
+            <result property="startTime" column="starttime"></result>
+            <result property="endTime" column="endtime"></result>
+        </association>
+    </resultMap>
+
+    <select id="getClassStudent" parameterType="string" resultMap="map1">
+        select Student.id
+        from Student join StuClass on Student.classId=StuClass.id
+        where   StuClass.id=#{classId};
+    </select>
+    <select id="getStuExerScore"  resultMap="map5" >
+        select
+        sum(StuAnswer.score),max(Student.name)
+        from  Student left  join StuAnswer on  Student.id=StuAnswer.studentId
+        where  Student.classId=#{0} and   StuAnswer.exerciseId=#{1}
+        group by ${StuAnswer.studentId}
+    </select>
+
+    <select id="getExerTotalScore" parameterType="int" resultType="int">
+        select
+        sum(score)
+        from QuestInExer
+        where QuestInExer.exerciseId=#{exerciseId}
+    </select>
+
+
+    <select id="getStuExerScores" parameterType="string" resultMap="map2">
+        select
+        sum(score) exerciseId
+        from StuAnswer
+        where StuAnswer.studentId=#{studentId}
+        group by ${StuAnswer.ExerciseId}
+    </select>
+
+    <select id="getStuOneExerAnswer" resultMap="map3">
+        select Question.id, Question.answer as qanswer,QuestInExer.orderId, Question.dbName, Question.questionClass, Question.title, StuAnswer.answer as sanswer, StuAnswer.isRight, StuAnswer.idea, StuAnswer.score
+        from Question, QuestInExer left join StuAnswer on QuestInExer.exerciseId=StuAnswer.exerciseId and QuestInExer.questionId=StuAnswer.questionId and StuAnswer.studentId = #{studentId}
+        where QuestInExer.exerciseId = #{exerciseId} and Question.id=QuestInExer.questionId
+        order by QuestInExer.orderId
+    </select>
+
+    <select id="getExerAllQuestion" resultMap="map4">
+        select Question.id QuestInExer.orderId Question.dbName Question.questionClass Question.title
+        from Question join QuestInExer on Question.id=QuestInExer.questionId
+        order by QuestInExer.orderId
+    </select>
+
+    <select id="getClassExerQuestScore" resultMap="map6">
+        select
+        StuAnswer.score Student.name StuAnswer.answer StuAnswer.isRight StuAnswer.idea
+        from  Student left  join StuAnswer on  Student.id=StuAnswer.studentId
+        where  Student.classId=#{0} and   StuAnswer.exerciseId=#{1} and StuAnswer.questionId=#{2}
+    </select>
+
+    <select id="getClassExerEachQuestAvg" resultMap="map7" >
+        select
+        avg(score),max(QuestInExer.questionId),max(QuestionInExer.orderId),max(Question.dbName),max(Question.questionClass),max(Question.title)
+        from Student,Question,StuAnswer,QuestInExer
+        where Student.classId=#{1} and StuAnswer.exerciseId=#{0} and
+        Student.id=StuAnswer.studentId and StuAnswer.questionId=Question.id
+        StuAnswer.exerciseId=QuestInExer.exerciseId
+        group by ${StuAnswer.questionId}
+    </select>
+
+    <select id="getStudentAllAnswer" parameterType="string" resultMap="map8">
+        with stu_answer
+        AS
+        (select stuanswer.exerciseid as exercise_id, count(stuanswer.questionid) as stu_count, sum(stuanswer.score) as stu_sum 
+         from Student, ExerInClass, StuAnswer 
+         where Student.id = stuanswer.studentid and exerinclass.stuclassid = student.classid 
+         and exerinclass.exerciseid = stuanswer.exerciseid and student.id = #{studentId}
+         group by stuanswer.exerciseid),
+        quest_in_exer
+        AS
+        (select QuestInExer.exerciseid as exercise_id, count(QuestInExer.questionid) as quest_count, sum(QuestInexer.score) as quest_sum
+         from Student, ExerInClass, QuestInExer
+         where Student.id = #{studentId} and Student.classid = ExerInClass.stuclassid and QuestInExer.exerciseid = ExerInClass.exerciseid
+         group by QuestInExer.exerciseid)
+        select Exercise.id, Exercise.name, ExerInClass.starttime, ExerInClass.endtime,
+        stu_answer.stu_count = quest_in_exer.quest_count as isfinish ,
+        stu_answer.stu_sum, stu_answer.stu_sum = quest_in_exer.quest_sum as isfull
+        from Student,Exercise,ExerInClass,stu_answer,quest_in_exer
+        where Student.id = #{studentId} and Student.classid = ExerInClass.stuclassid and ExerInClass.exerciseid = Exercise.id
+        and ExerInClass.exerciseid = stu_answer.exercise_id and ExerInClass.exerciseid = quest_in_exer.exercise_id;
+    </select>
+</mapper>

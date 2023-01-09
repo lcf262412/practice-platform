@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.example.demo.mapper.ExerInClassMapper">
+    <resultMap id="map_exeinclass" type="com.example.demo.entity.ExerInClass">
+        <id property="exerciseId" column="exerciseId"/>
+        <result property="isTest" column="isTest"/>
+        <result property="startTime" column="startTime"/>
+        <result property="endTime" column="endTime"/>
+        <association property="exercise" javaType="com.example.demo.entity.Exercise">
+            <result property="name" column="name"/>
+            <result property="describe" column="describe"/>
+        </association>
+
+
+    </resultMap>
+
+    <resultMap id="map_exeinclass1" type="com.example.demo.entity.ExerInClass1">
+        <id property="exerciseId" column="exerciseId"/>
+        <result property="total_score" column="total_score"/>
+        <result property="isTest" column="isTest"/>
+        <result property="startTime" column="startTime"/>
+        <result property="endTime" column="endTime"/>
+        <association property="exercise" javaType="com.example.demo.entity.Exercise">
+            <result property="name" column="name"/>
+            <result property="describe" column="describe"/>
+        </association>
+
+
+    </resultMap>
+    
+    <resultMap id="map_exeinclass_2" type="com.example.demo.entity.SQLResult">
+        <association property="exerInClass" javaType = "com.example.demo.entity.ExerInClass" >
+            <result property="stuClassId" column="stuclassId"/>
+            <result property="isTest" column="isTest"/>
+            <result property="startTime" column="startTime"/>
+            <result property="endTime" column="endTime"/>
+        </association>
+        <association property="stuClass" javaType = "com.example.demo.entity.StuClass">
+            <result property="id" column="stuclassId"/>
+            <result property="semester" column="semester"/>
+            <result property="teacherId" column="teacherId"/>
+        </association>
+        <association property="teacher" javaType = "com.example.demo.entity.Teacher">
+            <result property="id" column="teacherId"/>
+            <result property="name" column="name"/>
+        </association>
+    </resultMap>
+    
+    <resultMap id="map_exeinclass_3" type="com.example.demo.entity.SQLResult">
+        <association property="exercise" javaType="com.example.demo.entity.Exercise">
+            <result property="id" column="exerciseId"/>
+            <result property="name" column="name"/>
+            <result property="describe" column="describe"/>
+        </association>
+        <association property="exerInClass" javaType = "com.example.demo.entity.ExerInClass">
+            <result property="exerciseId" column="exerciseId"/>
+            <result property="stuClassId" column="stuclassId"/>
+            <result property="isTest" column="isTest"/>
+            <result property="startTime" column="startTime"/>
+            <result property="endTime" column="endTime"/>
+        </association>
+        <association property="stuClass" javaType = "com.example.demo.entity.StuClass">
+            <result property="id" column="stuclassId"/>
+            <result property="semester" column="semester"/>
+        </association>
+    </resultMap>
+    
+    <select id="getClassALLExer" parameterType="string" resultMap="map_exeinclass1">
+        select Exercise.name,Exercise.describe,ExerInClass.exerciseId,ExerInClass.isTest,ExerInClass.startTime,ExerInClass.endTime
+        from Exercise join ExerInClass on Exercise.id=ExerInClass.exerciseId
+        where  ExerInClass.stuClassId = #{stuClassId}
+    </select>
+    
+    <select id="getClassALLExerInTime" parameterType="string" resultMap="map_exeinclass">
+        select Exercise.name,Exercise.describe,ExerInClass.exerciseId,ExerInClass.isTest,ExerInClass.startTime,ExerInClass.endTime
+        from Exercise join ExerInClass on Exercise.id=ExerInClass.exerciseId
+        where  ExerInClass.stuClassId = #{stuClassId}
+          and (now() >= startTime or startTime is null)
+          and (endTime >= now() or endTime is null)
+
+    </select>
+
+    <select id="getClassALLExers" parameterType="string" resultMap="map_exeinclass1">
+        select Exercise.name,Exercise.describe,ExerInClass.exerciseId,ExerInClass.isTest,ExerInClass.startTime,ExerInClass.endTime,sum(score) as total_score
+        from Exercise join ExerInClass on Exercise.id=ExerInClass.exerciseId
+                      left JOIN (select * from stuanswer where stuanswer.studentid =#{stuId}) as a on exercise.id = a.exerciseid
+        where  ExerInClass.stuClassId = #{stuClassId}
+        GROUP by(Exercise.name,Exercise.describe,ExerInClass.exerciseId,ExerInClass.isTest,ExerInClass.startTime,ExerInClass.endTime)
+    </select>
+
+    <select id="getClassALLExersInTime" parameterType="string" resultMap="map_exeinclass1">
+        select Exercise.name,Exercise.describe,ExerInClass.exerciseId,ExerInClass.isTest,ExerInClass.startTime,ExerInClass.endTime,sum(score) as total_score
+        from Exercise join ExerInClass on Exercise.id=ExerInClass.exerciseId
+                      left JOIN (select * from stuanswer where stuanswer.studentid =#{stuId}) as a on exercise.id = a.exerciseid
+        where  ExerInClass.stuClassId = #{stuClassId}
+          and (now() >= startTime or startTime is null)
+          and (endTime >= now() or endTime is null)
+        GROUP by(Exercise.name,Exercise.describe,ExerInClass.exerciseId,ExerInClass.isTest,ExerInClass.startTime,ExerInClass.endTime)
+
+    </select>
+    
+    <select id="getClassByExerciseId" parameterType="int" resultMap="map_exeinclass_2">
+        select ExerInClass.stuClassId,ExerInClass.isTest,ExerInClass.startTime,ExerInClass.endTime, StuClass.semester, StuClass.teacherId, Teacher.name 
+        from ExerInClass, StuClass, Teacher
+        where  ExerInClass.stuClassId= StuClass.id and StuClass.teacherId = Teacher.id
+               and ExerInClass.exerciseId = #{exerciseId}
+    </select>
+    
+    <select id="getALLExerInClassByTeacherId" parameterType="string" resultMap="map_exeinclass_3">
+        select Exercise.name, Exercise.describe, ExerInClass.exerciseId, ExerInClass.stuClassId,ExerInClass.isTest,ExerInClass.startTime,ExerInClass.endTime, StuClass.semester 
+        from Exercise, ExerInClass, StuClass
+        where  ExerInClass.stuClassId= StuClass.id and ExerInClass.exerciseId = Exercise.id and StuClass.teacherId = #{teacherId}
+    </select>
+</mapper>
+

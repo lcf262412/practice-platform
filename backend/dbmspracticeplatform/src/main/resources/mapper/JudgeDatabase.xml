@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.example.demo.mapper.JudgeDatabaseMapper">
+    <resultMap id="map_judgeDatabase" type="com.example.demo.entity.JudgeDatabase">
+        <result property="name" column="name"/>
+        <result property="describe" column="describe"/>
+    </resultMap>
+    <select id="getJudgeDatabasesByteacherId" parameterType="string" resultMap="map_judgeDatabase">
+        select judgedatabase.name, describe from judgedatabase, database 
+        where judgedatabase.name = database.name and database.userid = #{userId} 
+    </select>
+</mapper>

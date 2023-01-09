@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.demo.mapper.TeacherMapper">
+    <resultMap id = "map1" type = "com.example.demo.entity.Teacher">
+        <result property = "id" column = "id" />
+        <result property = "name" column = "name" />
+    </resultMap>
+    
+    <select id="getAllTeachers" resultMap="map1">
+        select Teacher.id, Teacher.name
+        from Teacher, SysUser
+        where Teacher.id = SysUser.id and SysUser.userClass != 1
+    </select>
+
+
+</mapper>

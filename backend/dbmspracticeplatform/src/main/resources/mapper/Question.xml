@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.demo.mapper.QuestionMapper">
+    <resultMap id="map_question" type="com.example.demo.entity.Question">
+        <id property="id" column="id"/>
+        <result property="dbName" column="dbName"/>
+        <result property="questionClass" column="questionClass"/>
+        <result property="title" column="title"/>
+        <result property="teacherId" column="teacherid"/>
+        <association property="teacher" javaType="com.example.demo.entity.Teacher">
+            <result property="id" column="id"/>
+            <result property="name" column="name"/>
+        </association>
+    </resultMap>
+    <resultMap id="map_question_2" type="com.example.demo.entity.Question">
+        <id property="id" column="id"/>
+        <result property="dbName" column="dbName"/>
+        <result property="questionClass" column="questionClass"/>
+        <result property="title" column="title"/>
+        <result property="teacherId" column="teacherid"/>
+        <result property="deleteflag" column="deleteflag"/>
+        <association property="teacher" javaType="com.example.demo.entity.Teacher">
+            <result property="id" column="id"/>
+            <result property="name" column="name"/>
+        </association>
+    </resultMap>
+    <resultMap id="map_student_question" type="com.example.demo.entity.SQLResult">
+        <association property="question" javaType="com.example.demo.entity.Question">
+            <result property="questionClass" column="questionClass"/>
+            <result property="dbName" column="dbName"/>
+            <result property="title" column="title"/>
+            <result property="content" column="content"/>
+            <result property="analysis" column="analysis"/>
+        </association> 
+        <association property="judgeDatabase" javaType="com.example.demo.entity.JudgeDatabase">
+            <result property="describe" column="describe"/>
+        </association>
+    </resultMap>
+    <resultMap id="map_teacher_question" type="com.example.demo.entity.SQLResult">
+        <association property="teacher" javaType="com.example.demo.entity.Teacher">
+            <result property="name" column="name"/>
+        </association>
+        <association property="question" javaType="com.example.demo.entity.Question">
+            <result property="questionClass" column="questionClass"/>
+            <result property="dbName" column="dbName"/>
+            <result property="title" column="title"/>
+            <result property="content" column="content"/>
+            <result property="analysis" column="analysis"/>
+            <result property="initSQL" column="initsql"/>
+            <result property="targetName" column="targetName"/>
+            <result property="answer" column="answer"/>
+            <result property="teacherId" column="teacherid"/>
+        </association>
+        <association property="judgeDatabase" javaType="com.example.demo.entity.JudgeDatabase">
+            <result property="describe" column="describe"/>
+        </association>
+    </resultMap>
+    <select id="getALLQuestion" resultMap="map_question">
+        select Question.dbName,Question.id,Question.questionClass,Question.title, Question.teacherid, Teacher.name
+        from Question, Teacher
+        where Question.teacherId=Teacher.id 
+        order by dbName, position(questionClass::text||',' in '1,2,3,4,5,12,6,7,8,10,9,11,')
+    </select>
+    <select id="getTeacherQuestion" parameterType="int" resultMap="map_teacher_question">
+        select Question.questionClass, Question.dbName, judgeDatabase.describe, Question.title, Question.content, Question.analysis, Question.initSQL, Question.targetName,Question.answer, Question.teacherId, Teacher.name
+        from Question, judgeDatabase,Teacher
+        where Question.dbName = judgeDatabase.name and Question.TeacherId=Teacher.id
+         and Question.deleteflag = false and Question.id = #{questionId}
+    </select>
+    <select id="getStudentQuestion" parameterType="int" resultMap="map_student_question">
+        select Question.questionClass, Question.dbName, judgeDatabase.describe, Question.title, Question.content, Question.analysis
+        from Question, judgeDatabase
+        where Question.dbName = judgeDatabase.name and Question.deleteflag = false and Question.id = #{questionId}
+    </select>
+    <select id="getQuestions" resultMap="map_question_2">
+        select Question.dbName,Question.id,Question.questionClass,Question.title,Question.deleteFlag,Question.teacherid,Teacher.name
+        from Question, Teacher
+        where Question.teacherId=Teacher.id
+        order by dbName, position(questionClass::text||',' in '1,2,3,4,5,12,6,7,8,10,9,11,')
+    </select>
+</mapper>

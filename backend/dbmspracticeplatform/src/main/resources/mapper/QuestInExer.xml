@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.demo.mapper.QuestInExerMapper">
+    <resultMap id="map_questInExer" type="com.example.demo.entity.QuestInExer">
+        <id property="questionId" column="questionId"/>
+        <result property="orderId" column="orderId"/>
+        <result property="score" column="score"/>
+        <association property="question" javaType="com.example.demo.entity.Question">
+            <result property="dbName" column="dbName"/>
+            <result property="questionClass" column="questionClass"/>
+            <result property="title" column="title"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="map_questInExer2" type="com.example.demo.entity.SQLResult">
+        <association property="questInExer" javaType="com.example.demo.entity.QuestInExer">
+            <result property="questionId" column="questionId"/>
+            <result property="orderId" column="orderId"/>
+            <result property="score" column="zscore"/>
+            <result property="exerciseId" column="zexerciseid"/>
+        </association>
+        <association property="question" javaType="com.example.demo.entity.Question">
+            <result property="dbName" column="dbName"/>
+            <result property="questionClass" column="questionClass"/>
+            <result property="title" column="title"/>
+        </association>
+
+        <collection property="stuAnswer" javaType="com.example.demo.entity.StuAnswer">
+            <result property="score" column="sscore"/>
+            <result property="exerciseId" column="sexerciseid"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="map_judge_question" type="com.example.demo.entity.SQLResult">
+        <association property="question" javaType="com.example.demo.entity.Question">
+            <result property="questionClass" column="questionClass"/>
+            <result property="targetName" column="targetName"/>
+            <result property="dbName" column="dbname"/>
+            <result property="initSQL" column="initsql"/>
+            <result property="answer" column="answer"/>
+        </association>
+        <association property="questInExer" javaType="com.example.demo.entity.QuestInExer">
+            <result property="score" column="score"/>
+        </association> 
+    </resultMap>
+    <resultMap id="map_student_question" type="com.example.demo.entity.SQLResult">
+        <association property="question" javaType="com.example.demo.entity.Question">
+            <result property="id" column="id"/>
+            <result property="questionClass" column="questionClass"/>
+            <result property="dbName" column="dbName"/>
+            <result property="title" column="title"/>
+            <result property="content" column="content"/>
+            <result property="analysis" column="analysis"/>
+        </association> 
+        <association property="judgeDatabase" javaType="com.example.demo.entity.JudgeDatabase">
+            <result property="describe" column="describe"/>
+        </association>
+    </resultMap>
+    <resultMap id="map_exercise" type="com.example.demo.entity.SQLResult">
+        <association property="exercise" javaType="com.example.demo.entity.Exercise">
+            <result property="id" column="id"/>
+            <result property="name" column="e_name"/>
+            <result property="describe" column="describe"/>
+        </association>
+        <association property="teacher" javaType="com.example.demo.entity.Teacher">
+            <result property="id" column="t_id"/>
+            <result property="name" column="t_name"/>
+        </association>
+    </resultMap>
+    <select id="exerSumScore" parameterType="int" resultType="int">
+        select
+        sum(score)
+        from QuestInExer
+        where exerciseId=#{exerciseId}
+    </select>
+
+    <select id="getExerAllQuestContent" parameterType="int" resultMap="map_questInExer">
+        select QuestInExer.questionId, QuestInExer.orderId,Question.dbName,Question.questionClass,Question.title, QuestInExer.score
+        from QuestInExer join Question on Question.id=QuestInExer.questionId
+        where  QuestInExer.exerciseId=#{exerciseId} AND Question.deleteflag=false
+        order by QuestInExer.orderId ASC
+    </select>
+
+    <select id="getExerAllQuestContents" resultMap="map_questInExer2">
+        select QuestInExer.questionId, QuestInExer.orderId, QuestInExer.exerciseid as zexerciseid,Question.dbName,Question.questionClass,Question.title, QuestInExer.score as zscore,a.score as sscore
+        from QuestInExer join Question on Question.id=QuestInExer.questionId
+                         left JOIN (SELECT *from stuanswer where stuanswer.studentid=#{stuId}) as a on questinexer.questionId = a.questionId
+        where  QuestInExer.exerciseId=#{exerciseId} AND Question.deleteflag=false
+        order by QuestInExer.orderId ASC
+    </select>
+
+    <select id="getJudgeQuestion" parameterType="int" resultMap="map_judge_question">
+        select Question.questionClass, Question.targetName, Question.dbName, Question.answer, Question.initSQL, QuestInExer.score
+        from QuestInExer, Question
+        where Question.deleteflag = false and Question.id = #{questionId} and QuestInExer.exerciseId = #{exerciseId} and QuestInExer.questionId = Question.id;
+    </select>
+    <select id="exerIsUsed" parameterType="int" resultType="int">
+        select count(QuestInExer.questionId)
+        from QusetInExer left join ExerInClass on QuestInExer.exerciseId=ExerInClass.exerciseId
+        where QuestInExer.questionId=#{questionId}
+    </select>
+    <select id="getMaxOrderIdInExer" parameterType="int" resultType="int">
+        select
+        max(orderId)
+        from QuestInExer
+        where exerciseId=#{exerciseId}
+    </select>
+    
+    <update id="updateOtherQuestionOrderId">
+        update QuestInExer
+        set orderId = orderId - 1
+        where exerciseId = #{exerciseId} and orderId > #{orderId}
+    </update>
+    
+    <select id="getStudentQuestion" resultMap="map_student_question">
+        select Question.id, Question.questionClass, Question.dbName, judgeDatabase.describe, Question.title, Question.content, Question.analysis
+        from Question, judgeDatabase, QuestInExer
+        where Question.dbName = judgeDatabase.name and Question.deleteflag = false and Question.id = QuestInExer.questionId and
+              QuestInExer.exerciseId = #{exerciseId} and QuestInExer.orderId = #{orderId} 
+    </select>
+    
+    <select id="getExerciseByQuestionId" parameterType="int" resultMap="map_exercise">
+        select Exercise.id, Exercise.name as e_name, Exercise.describe, Exercise.teacherId as t_id ,Teacher.name as t_name
+        from Exercise, Teacher, QuestInExer
+        where Exercise.teacherId=Teacher.id and QuestInExer.exerciseId = Exercise.id and
+              QuestInExer.questionId = #{questionId} and Exercise.deleteflag=false
+    </select>
+</mapper>

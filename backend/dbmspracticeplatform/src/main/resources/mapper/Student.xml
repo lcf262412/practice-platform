@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.demo.mapper.StudentMapper">
+    <resultMap id = "map1" type = "com.example.demo.entity.Student">
+        <result property = "id" column = "id" />
+        <result property = "name" column = "name" />
+        <result property = "grade" column = "grade" />
+        <result property = "classId" column = "classid" />
+        <result property = "isactive" column = "isactive" /> 
+    </resultMap>
+    
+    <resultMap id="map2" type="com.example.demo.entity.SQLResult">
+        <association property = "student" javaType = "com.example.demo.entity.Student">
+            <result property = "id" column = "studentid" />
+            <result property = "name" column = "name" />
+            <result property = "grade" column = "grade" />
+            <result property = "classId" column = "classid" />
+            <result property = "isactive" column = "isactive" /> 
+        </association>
+        <association property = "teacher" javaType = "com.example.demo.entity.Teacher">
+            <result property = "id" column = "teacherid"/>
+            <result property = "name" column = "teachername"/>
+        </association>
+        <association property = "sysUser" javaType = "com.example.demo.entity.SysUser">
+            <result property = "id" column = "studentid"/>
+            <result property = "userClass" column = "userclass"/>
+        </association>
+    </resultMap>
+
+    <select id="selectListByTeacherId" parameterType="string" resultMap="map1">
+        select student.id, student.name, student.grade, student.classid, student.isactive
+        from student, stuclass
+        where student.classid = stuclass.id and stuclass.teacherid = #{teacherId};
+    </select>
+    
+    <select id="getAllStudents" resultMap="map2">
+        select student.id as studentid, student.name, student.grade, student.classid, student.isactive, teacher.id as teacherid, teacher.name as teachername, sysuser.userClass
+        from student, stuclass, teacher, sysuser
+        where student.classid = stuclass.id and stuclass.teacherid = teacher.id and sysuser.id = student.id;
+    </select>
+    
+    <select id="getStudentById" parameterType="string" resultMap="map2">
+        select student.id as studentid, student.name, student.grade, student.classid, student.isactive, teacher.id as teacherid, teacher.name as teachername, sysuser.userClass
+        from student, stuclass, teacher, sysuser
+        where student.classid = stuclass.id and stuclass.teacherid = teacher.id and sysuser.id = student.id and student.id like #{id};
+    </select>
+    
+    <select id="getStudentByName" parameterType="string" resultMap="map2">
+        select student.id as studentid, student.name, student.grade, student.classid, student.isactive, teacher.id as teacherid, teacher.name as teachername, sysuser.userClass
+        from student, stuclass, teacher, sysuser
+        where student.classid = stuclass.id and stuclass.teacherid = teacher.id and sysuser.id = student.id and student.name like #{name};
+    </select>
+
+    <select id="getStudentByNameOrId" parameterType="string" resultMap="map2">
+        select student.id as studentid, student.name, student.grade, student.classid, student.isactive, teacher.id as teacherid, teacher.name as teachername, sysuser.userClass
+        from student, stuclass, teacher, sysuser
+        where student.classid = stuclass.id and stuclass.teacherid = teacher.id and sysuser.id = student.id and (student.name like #{nameorid} or student.id like #{nameorid});
+    </select>
+
+    <select id="useStuidgetTeaid" parameterType="string" resultMap="map2">
+        select teacherid  from stuclass sc left JOIN student sd on sc.id = sd.classid
+        where sd.id = #{id};
+    </select>
+
+</mapper>
