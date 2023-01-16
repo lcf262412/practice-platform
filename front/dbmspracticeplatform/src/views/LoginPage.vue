@@ -110,6 +110,7 @@ export default {
       selectRole: 0,
       username: "",
       teacherid: "",
+      
     };
   },
   mounted() {
@@ -134,7 +135,13 @@ export default {
         if (result.isactive == false) {
           this.$alert("学生用户已禁用", "登陆失败", {
             confirmButtonText: "确认",
-            callback: (action) => {},
+            callback: (action) => {
+              userLogout({ id: this.form.username }).then((res) => {
+                const { code, result } = res.data;
+                if (code === "0000") {
+                }
+              });
+            },
           });
         } else if (code === "0000") {
           if (result.userClass == 5) {

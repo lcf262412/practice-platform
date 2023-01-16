@@ -83,7 +83,7 @@ private static ConcurrentMap<String, LocalCacheData> cacheRepository = new Concu
 		}
 		LocalCacheData localCacheData = cacheRepository.get(key);
 		if (localCacheData != null && System.currentTimeMillis()<localCacheData.getTimeoutTime()) {//没超时
-			localCacheData.setTimeoutTime(System.currentTimeMillis()+2*60*1000);//延长时间
+			localCacheData.setTimeoutTime(System.currentTimeMillis()+5*60*1000);//延长时间
 			return Optional.ofNullable(localCacheData.getVal());
 		} else {
 			remove(key);

@@ -115,6 +115,7 @@ export default {
                 
                 // 清理sessionStorage
                 sessionStorage.clear();
+                
                 this.$resetSetItem('clear','22222')
                 this.$router.push("/");
                 

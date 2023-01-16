@@ -69,7 +69,7 @@ public class SysUserController {
 		}
 		
 		modelMap.put("userClass", sysUser.getUserClass());
-		LoginCacheUtil.set(id, id,2*60*1000);
+		LoginCacheUtil.set(id, id,5*60*1000);
 		//在此处添加
 		return BaseResponse.success(modelMap);
 	}

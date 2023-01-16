@@ -192,7 +192,7 @@ export default {
         .catch((err) => {
           err;
         });
-
+      
       // 网页刷新以重新挂载（待优化）
       window.location.reload();
     },
@@ -206,6 +206,7 @@ export default {
         .catch((err) => {
           err;
         });
+        
       // 网页刷新以重新挂载（待优化）
       window.location.reload();
     },
