@@ -130,8 +130,12 @@ public class PracticeController {
         
         //判断学生是否存在，并获取相应的连接参数
         Student student = studentService.getStudent(studentId);
-        if (student == null || !student.isIsactive()) {
+        if (student == null) {
 			modelMap.put("errmessage", " 学生不存在");
+        	return BaseResponse.fail(modelMap);
+        }
+        if (!student.isIsactive()) {
+			modelMap.put("errmessage", " 学生用户已禁用,无法进入该模块!");
         	return BaseResponse.fail(modelMap);
         }
 		

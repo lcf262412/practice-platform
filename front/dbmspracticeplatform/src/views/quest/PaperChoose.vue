@@ -33,6 +33,7 @@
           label="试卷描述"
           :show-overflow-tooltip="true"
           sortable="custom"
+          width="400"
         ></el-table-column>
         <el-table-column
           disabled
@@ -96,7 +97,7 @@
 </template>
 
 <script>
-import { getClassAllExers, getOneStudentById, getAllExer } from "@/api/api";
+import { getClassAllExers, getOneStudentById, getAllExer,userLogout } from "@/api/api";
 
 export default {
   data() {
@@ -270,8 +271,57 @@ export default {
       getOneStudentById(param).then((res) => {
         var { code, result } = res.data;
         if (code === "0000") {
-          this.classId = result.classId;
-          this.getExerList();
+          if(result==null){
+            this.$alert("学生不存在！", {
+              confirmButtonText: "确认",
+              callback: (action) => {
+                userLogout({id:this.$store.state.username}).then((res) => {
+                  const { code, result } = res.data;
+                  if (code === "0000") {
+                    
+                    this.$store.commit("resetState");
+                    
+                    // 清理sessionStorage
+                    sessionStorage.clear();
+                    
+                    this.$resetSetItem('clear','22222')
+                    this.$router.push("/");
+                    
+                  }
+                });
+              },
+            });
+          }
+          else if(result.isactive==false){
+            this.$alert("学生用户已禁用,无法进入该模块！", {
+              confirmButtonText: "确认",
+              callback: (action) => {
+                userLogout({id:this.$store.state.username}).then((res) => {
+                  const { code, result } = res.data;
+                  if (code === "0000") {
+                    
+                    this.$store.commit("resetState");
+                    
+                    // 清理sessionStorage
+                    sessionStorage.clear();
+                    
+                    this.$resetSetItem('clear','22222')
+                    this.$router.push("/");
+                    
+                  }
+                });
+              },
+            });
+            
+          }
+          
+          else{
+            this.classId = result.classId;
+            
+            
+            this.getExerList();
+          }
+          
         }
       });
       return classId;

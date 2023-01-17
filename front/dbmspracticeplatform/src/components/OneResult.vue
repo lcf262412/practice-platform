@@ -752,6 +752,8 @@ export default {
 
     // 查询结果导出为xlsx
     exportTable2Xlsx(index) {
+     
+    
       table2Excel(index);
     },
 

@@ -84,7 +84,7 @@
     <select id="getExerAllQuestContents" resultMap="map_questInExer2">
         select QuestInExer.questionId, QuestInExer.orderId, QuestInExer.exerciseid as zexerciseid,Question.dbName,Question.questionClass,Question.title, QuestInExer.score as zscore,a.score as sscore
         from QuestInExer join Question on Question.id=QuestInExer.questionId
-                         left JOIN (SELECT *from stuanswer where stuanswer.studentid=#{stuId}) as a on questinexer.questionId = a.questionId
+                         left JOIN (SELECT *from stuanswer where stuanswer.studentid=#{stuId}) as a on questinexer.questionId = a.questionId and questinexer.exerciseid = a.exerciseid
         where  QuestInExer.exerciseId=#{exerciseId} AND Question.deleteflag=false
         order by QuestInExer.orderId ASC
     </select>

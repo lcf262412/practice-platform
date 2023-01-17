@@ -170,17 +170,8 @@ public class QuestInExerServiceImpl extends ServiceImpl<QuestInExerMapper, Quest
     public List<Map<String,Object>> getExerALLContents(int exerciseId,String stuId){
         List<SQLResult> questInExers=questInExerMapper.getExerAllQuestContents(exerciseId,stuId);
         List<Map<String,Object>> result=new ArrayList<Map<String, Object>>();
-        log.info("111111111111111111111111111111111111111");
-        log.info("questions In this Exercise: {}", questInExers);
 
         for(SQLResult q:questInExers){
-            log.info("22222222222222222222222222222222222222222222222");
-            log.info("questionId:{}", q.getQuestInExer().getQuestionId());
-            log.info("orderId:{}", q.getQuestInExer().getOrderId());
-            log.info("zscore:{}", q.getQuestInExer().getScore());
-            log.info("dbName:{}", q.getQuestion().getDbName());
-            log.info("questionClass:{}", q.getQuestion().getQuestionClass());
-            log.info("title:{}", q.getQuestion().getTitle());
             Map<String,Object> modelMap = new HashMap<String, Object>();
             modelMap.put("questionId",q.getQuestInExer().getQuestionId());
             modelMap.put("orderId",q.getQuestInExer().getOrderId());

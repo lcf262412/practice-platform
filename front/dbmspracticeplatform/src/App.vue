@@ -19,25 +19,40 @@ export default {
     };
   },
   mounted() {
+    // 刷新更新计时器
+    this.newValue = sessionStorage.getItem("username");
+    
+    if (this.newValue != null) {
+      this.closeT = false;
+      this.loginUpDate();
+    }
+    // 设置计时器触发监听
     window.addEventListener("setItem", (e) => {
+      
       this.newValue = sessionStorage.getItem("username");
       if (this.newValue != "") {
         this.closeT = false;
         this.loginUpDate();
       }
     });
+    // 设置计时器清除监听
     window.addEventListener("clear", (e) => {
+    
       clearInterval(this.cancelTimes);
     });
+   
   },
   watch: {
+    // 计时器更新失败后不再更新
     closeT(newValue) {
       if (newValue == true) {
+        
         clearInterval(this.cancelTimes);
       }
     },
   },
   created() {
+    
     // 在页面加载时读取sessionStorage里的状态信息
     if (sessionStorage.getItem("store")) {
       this.$store.replaceState(
@@ -48,7 +63,7 @@ export default {
         )
       );
     }
-
+   
     // 在页面刷新时将vuex里的信息保存到sessionStorage里
     // beforeunload事件在页面刷新时先触发
 
@@ -66,6 +81,8 @@ export default {
     });
 
     window.removeEventListener("unload", (e) => this.unloadHandler(e));
+    
+    
   },
   methods: {
     beforeunloadHandler(e) {
@@ -73,7 +90,9 @@ export default {
       storage.clear();
       this._beforeUnload_time = new Date().getTime();
     },
+    // 计时器
     loginUpDate() {
+      
       return (this.cancelTimes = setInterval(() => {
         var date = new Date();
         var h = date.getHours();
@@ -86,10 +105,11 @@ export default {
         } else {
           userId = this.$store.state.username;
         }
-
+        
         logUpdate({ id: userId }).then((res) => {
           const { code, result } = res.data;
           if (code === "0000") {
+            
           } else {
             this.$alert(result.errmessage);
             this.closeT = true;
@@ -100,7 +120,7 @@ export default {
     unloadHandler(e) {
       this._gap_time = new Date().getTime() - this._beforeUnload_time;
 
-      debugger;
+      
       //判断是窗口关闭还是刷新
       if (this._gap_time <= 5) {
         //如果是登录状态，关闭窗口前，移除用户

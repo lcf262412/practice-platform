@@ -44,7 +44,7 @@ export function json2Xlsx(data, tableName) {
 export function table2Excel(index) {
   var wb = XLSX.utils.table_to_book(
     // querySelector对应选择器的元素标签
-    document.querySelector('.result-table'- + index)
+    document.querySelector('.result-table-' + index)
   );
   var wbout = XLSX.write(wb, {
     bookType: 'xlsx',

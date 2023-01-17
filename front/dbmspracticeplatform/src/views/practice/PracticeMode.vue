@@ -353,7 +353,7 @@ import {
   connectDBStudent,
   connectDBTeacher,
 } from "@/api/api";
-import { uploadTable, disConnect } from "@/api/api.js";
+import { uploadTable, disConnect,getOneStudentById,userLogout } from "@/api/api.js";
 import ExecResultView from "@/components/ExecResultView.vue";
 import { json2Xlsx, JSonToCSV } from "@/util/utils";
 
@@ -497,21 +497,75 @@ export default {
       // 角色为学生，发起学生连接数据库请求
       if (this.$store.state.role === "student") {
         params.studentId = this.$store.state.username;
-        // 接口改动，这些参数不再需要
-        connectDBStudent(params).then((res) => {
-          const { code, result } = res.data;
+        getOneStudentById({ id: this.$store.state.username }).then((res) => {
+          var { code, result } = res.data;
           if (code === "0000") {
-            // 成功连接后自动获取用户模式oid
-            this.setUserSchema();
-          } else if (code === "1111") {
-            this.$alert(result.errmessage, {
+            if(result==null){
+              this.$alert("学生不存在！", {
               confirmButtonText: "确认",
               callback: (action) => {
-                this.$router.push("/choose");
+                userLogout({id:this.$store.state.username}).then((res) => {
+                  const { code, result } = res.data;
+                  if (code === "0000") {
+                    
+                    this.$store.commit("resetState");
+                    
+                    // 清理sessionStorage
+                    sessionStorage.clear();
+                    
+                    this.$resetSetItem('clear','22222')
+                    this.$router.push("/");
+                    
+                  }
+                });
               },
-            });
+              });
+            }
+            else if(result.isactive==false){
+              this.$alert("学生用户已禁用,无法进入该模块！", {
+                confirmButtonText: "确认",
+                callback: (action) => {
+                  userLogout({id:this.$store.state.username}).then((res) => {
+                    const { code, result } = res.data;
+                    if (code === "0000") {
+                      
+                      this.$store.commit("resetState");
+                      
+                      // 清理sessionStorage
+                      sessionStorage.clear();
+                      
+                      this.$resetSetItem('clear','22222')
+                      this.$router.push("/");
+                      
+                    }
+                  });
+                },
+              });
+              
+            }
+            
+            else{
+              // 接口改动，这些参数不再需要
+              connectDBStudent(params).then((res) => {
+                const { code, result } = res.data;
+                if (code === "0000") {
+                  // 成功连接后自动获取用户模式oid
+                  this.setUserSchema();
+                } else if (code === "1111") {
+                  console.log('result',result)
+                  this.$alert(result.errmessage, {
+                    confirmButtonText: "确认",
+                    callback: (action) => {
+                      this.$router.push("/choose");
+                    },
+                  });
+                }
+              });
+            }
+            
           }
         });
+        
       } else if (this.$store.state.role === "teacher") {
         params.teacherId = this.$store.state.username;
         params.dbName = this.dbName;

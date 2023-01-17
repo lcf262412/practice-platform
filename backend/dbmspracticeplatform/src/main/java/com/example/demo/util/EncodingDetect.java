@@ -297,11 +297,13 @@ class BytesEncodingDetect extends Encoding {
                 boolean OriginalGBRangePart2 = i + 1 < rawtextlen && (byte) 0xA1 <= rawtext[i + 1] && rawtext[i + 1] <= (byte) 0xFE;
                 boolean OriginalGBRange = OriginalGBRangePart1 && OriginalGBRangePart2; // Original GB range
                 boolean ExtendedGBRangePart1 = (byte) 0x81 <= rawtext[i] && rawtext[i] <= (byte) 0xFE && i + 1 < rawtextlen;
-                boolean ExtendedGBRangePart2 = ((byte) 0x80 <= rawtext[i + 1] && rawtext[i + 1] <= (byte) 0xFE) || ((byte) 0x40 <= rawtext[i + 1] && rawtext[i + 1] <= (byte) 0x7E);
+                boolean ExtendedGBRangePart2Part1 = i + 1 < rawtextlen && (byte) 0x80 <= rawtext[i + 1] && rawtext[i + 1] <= (byte) 0xFE;
+                boolean ExtendedGBRangePart2Part2 = i + 1 < rawtextlen && (byte) 0x40 <= rawtext[i + 1] && rawtext[i + 1] <= (byte) 0x7E;
+                boolean ExtendedGBRangePart2 = ExtendedGBRangePart2Part1 || ExtendedGBRangePart2Part2;
                 boolean ExtendedGBRange = ExtendedGBRangePart1 && ExtendedGBRangePart2; // Extended GB range
-                boolean ExtendedGBRange2Part1 = (byte) 0x81 <= rawtext[i] && rawtext[i] <= (byte) 0xFE && i + 3 < rawtextlen;
-                boolean ExtendedGBRange2Part2 = (byte) 0x30 <= rawtext[i + 1] && rawtext[i + 1] <= (byte) 0x39 && (byte) 0x81 <= rawtext[i + 2];
-                boolean ExtendedGBRange2Part3 = rawtext[i + 2] <= (byte) 0xFE && (byte) 0x30 <= rawtext[i + 3] && rawtext[i + 3] <= (byte) 0x39;
+                boolean ExtendedGBRange2Part1 = (byte) 0x81 <= rawtext[i] && rawtext[i] <= (byte) 0xFE;
+                boolean ExtendedGBRange2Part2 = i + 3 < rawtextlen && (byte) 0x30 <= rawtext[i + 1] && rawtext[i + 1] <= (byte) 0x39 && (byte) 0x81 <= rawtext[i + 2];
+                boolean ExtendedGBRange2Part3 = i + 3 < rawtextlen && rawtext[i + 2] <= (byte) 0xFE && (byte) 0x30 <= rawtext[i + 3] && rawtext[i + 3] <= (byte) 0x39;
                 boolean ExtendedGBRange2 = ExtendedGBRange2Part1 && ExtendedGBRange2Part2 && ExtendedGBRange2Part3; // Extended GB range
                 if (OriginalGBRange) {
                     gbchars++;
@@ -357,7 +359,7 @@ class BytesEncodingDetect extends Encoding {
         int row;
         int column;
         rawtextlen = rawtext.length;
-        for (i = 0; i < rawtextlen; i++) {
+        for (i = 0; i < rawtextlen - 1; i++) {
             if (rawtext[i] == '~') {
                 if (rawtext[i + 1] == '{') {
                     hzstart++;
@@ -556,8 +558,9 @@ class BytesEncodingDetect extends Encoding {
             } else { // high bit set
                 dbchars++;
                 boolean isPlanes1To16Part1 = i + 3 < rawtextlen && (byte) 0x8E == rawtext[i] && (byte) 0xA1 <= rawtext[i + 1] && rawtext[i + 1] <= (byte) 0xB0;
-                boolean isPlanes1To16Part2 = (byte) 0xA1 <= rawtext[i + 2] && rawtext[i + 2] <= (byte) 0xFE && (byte) 0xA1 <= rawtext[i + 3] && rawtext[i + 3] <= (byte) 0xFE;
-                boolean isPlanes1To16 = isPlanes1To16Part1 && isPlanes1To16Part2;
+                boolean isPlanes1To16Part2 = i + 3 < rawtextlen && (byte) 0xA1 <= rawtext[i + 2] && rawtext[i + 2] <= (byte) 0xFE;
+                boolean isPlanes1To16Part3 = i + 3 < rawtextlen && (byte) 0xA1 <= rawtext[i + 3] && rawtext[i + 3] <= (byte) 0xFE;
+                boolean isPlanes1To16 = isPlanes1To16Part1 && isPlanes1To16Part2 && isPlanes1To16Part3;
                 if (isPlanes1To16) { // Planes 1 - 16
                     cnschars++;
                     // These are all less frequent chars so just ignore freq
@@ -676,7 +679,7 @@ class BytesEncodingDetect extends Encoding {
         	boolean isTwoByte = isTwoBytePart1 && isTwoBytePart2; // Two bytes
         	boolean isThreeBytePart1 = -32 <= rawtext[i] && rawtext[i] <= -17;
         	boolean isThreeBytePart2 = i + 2 < rawtextlen && -128 <= rawtext[i + 1] && rawtext[i + 1] <= -65;
-        	boolean isThreeBytePart3 = -128 <= rawtext[i + 2] && rawtext[i + 2] <= -65;
+        	boolean isThreeBytePart3 = i + 2 < rawtextlen && -128 <= rawtext[i + 2] && rawtext[i + 2] <= -65;
         	boolean isThreeByte = isThreeBytePart1 && isThreeBytePart2 && isThreeBytePart3; // Three bytes 
             if ((rawtext[i] & (byte) 0x7F) == rawtext[i]) { // One byte
                 asciibytes++;
@@ -710,7 +713,7 @@ class BytesEncodingDetect extends Encoding {
      */
     int utf16_probability(byte[] rawtext) {
         boolean isBigEndian = rawtext.length > 1 && ((byte) 0xFE == rawtext[0] && (byte) 0xFF == rawtext[1]);// Big-endian
-    	boolean isLittleEndian = ((byte) 0xFF == rawtext[0] && (byte) 0xFE == rawtext[1]);// Little-endian
+    	boolean isLittleEndian = rawtext.length > 1 && ((byte) 0xFF == rawtext[0] && (byte) 0xFE == rawtext[1]);// Little-endian
         if (isBigEndian || isLittleEndian ) { 
             return 100;
         }
@@ -837,7 +840,7 @@ class BytesEncodingDetect extends Encoding {
         int i;
         for (i = 0; i < rawtext.length; i++) {
             boolean isISO2022KRPart1 = i + 3 < rawtext.length && rawtext[i] == 0x1b && (char) rawtext[i + 1] == '$';
-        	boolean isISO2022KRPart2 = (char) rawtext[i + 2] == ')' && (char) rawtext[i + 3] == 'C';
+        	boolean isISO2022KRPart2 = i + 3 < rawtext.length && (char) rawtext[i + 2] == ')' && (char) rawtext[i + 3] == 'C';
         	boolean isISO2022KR = isISO2022KRPart1 && isISO2022KRPart2;
             if (isISO2022KR) {
                 return 100;
